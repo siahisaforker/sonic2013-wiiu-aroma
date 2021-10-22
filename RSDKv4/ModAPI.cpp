@@ -33,26 +33,6 @@ namespace fs = std::__fs::filesystem; // this is so we can avoid using c++17, wh
 namespace fs = std::filesystem;
 #endif
 
-fs::path resolvePath(fs::path given)
-{
-    //if (given.is_relative())
-        //given = fs::current_path() / given; // thanks for the weird syntax!
-    for (auto &p : fs::directory_iterator{ given.parent_path() }) {
-        char pbuf[0x100];
-        char gbuf[0x100];
-        auto pf   = p.path().filename();
-        auto pstr = pf.string();
-        StringLowerCase(pbuf, pstr.c_str());
-        auto gf   = given.filename();
-        auto gstr = gf.string();
-        StringLowerCase(gbuf, gstr.c_str());
-        if (StrComp(pbuf, gbuf)) {
-            return p.path();
-        }
-    }
-    return given; // might work might not!
-}
-
 void initMods()
 {
     modList.clear();
@@ -60,11 +40,10 @@ void initMods()
     disableFocusPause = disableFocusPause_Config;
     redirectSave      = false;
     sprintf(savePath, "");
-
     char modBuf[0x100];
     sprintf(modBuf, "%smods", modsPath);
+    fs::path modPath(modBuf);
 
-    fs::path modPath = resolvePath(modBuf);
 
     if (fs::exists(modPath) && fs::is_directory(modPath)) {
         std::string mod_config = modPath.string() + "/modconfig.ini";
@@ -82,9 +61,19 @@ void initMods()
             }
         }
 
-        try {
-            auto rdi = fs::directory_iterator(modPath);
-            for (auto de : rdi) {
+        std::error_code ec;
+        auto rdi = fs::directory_iterator(modPath, ec);
+        if (!ec) {
+            //yay ranged for unrolling
+            auto de_b = fs::begin(rdi);
+            auto de_e = fs::end(rdi);
+            for (; de_b != de_e; de_b.increment(ec)) {
+                if (ec) {
+                    printLog("Error scanning mods folder");
+                    break;
+                }
+                auto de = *de_b;
+                //end ranged for unrolling
                 if (de.is_directory()) {
                     fs::path modDirPath = de.path();
 
@@ -108,10 +97,7 @@ void initMods()
                     }
                 }
             }
-        } catch (fs::filesystem_error fe) {
-            printLog("Mods Folder Scanning Error: ");
-            printLog(fe.what());
-        }
+        } else printLog("Error scanning mods folder");
     }
 
     forceUseScripts   = false;
@@ -228,14 +214,14 @@ void scanModFolder(ModInfo *info)
     char modBuf[0x100];
     sprintf(modBuf, "%smods", modsPath);
 
-    fs::path modPath = resolvePath(modBuf);
+    fs::path modPath(modBuf);
 
     const std::string modDir = modPath.string() + "/" + info->folder;
 
     info->fileMap.clear();
 
     // Check for Data/ replacements
-    fs::path dataPath = resolvePath(modDir + "/Data");
+    fs::path dataPath(modDir + "/Data");
 
     if (fs::exists(dataPath) && fs::is_directory(dataPath)) {
         try {
@@ -283,7 +269,7 @@ void scanModFolder(ModInfo *info)
     }
 
     // Check for Scripts/ replacements
-    fs::path scriptPath = resolvePath(modDir + "/Scripts");
+    fs::path scriptPath(modDir + "/Scripts");
 
     if (fs::exists(scriptPath) && fs::is_directory(scriptPath)) {
         try {
@@ -331,7 +317,7 @@ void scanModFolder(ModInfo *info)
     }
 
     // Check for Bytecode/ replacements
-    fs::path bytecodePath = resolvePath(modDir + "/Bytecode");
+    fs::path bytecodePath(modDir + "/Bytecode");
 
     if (fs::exists(bytecodePath) && fs::is_directory(bytecodePath)) {
         try {
@@ -383,7 +369,7 @@ void saveMods()
 {
     char modBuf[0x100];
     sprintf(modBuf, "%smods", modsPath);
-    fs::path modPath = resolvePath(modBuf);
+    fs::path modPath(modBuf);
 
     if (fs::exists(modPath) && fs::is_directory(modPath)) {
         std::string mod_config = modPath.string() + "/modconfig.ini";
