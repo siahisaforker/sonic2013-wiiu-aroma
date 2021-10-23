@@ -196,7 +196,7 @@ void InitUserdata()
         }
 
         ini.SetInteger("Game", "Language", Engine.language = RETRO_EN);
-        ini.SetBool("Game", "SkipStartMenu", skipStartMenu = false);
+        ini.SetBool("Game", "SkipStartMenu", skipStartMenu = true);
         skipStartMenu_Config = skipStartMenu;
         ini.SetBool("Game", "DisableFocusPause", disableFocusPause = false);
         disableFocusPause_Config = disableFocusPause;
