@@ -9,6 +9,10 @@ bool engineDebugMode = false;
 #include <unistd.h>
 #endif
 
+#if RETRO_PLATFORM == RETRO_WIIU
+#include <whb/proc.h>
+#endif
+
 RetroEngine Engine = RetroEngine();
 
 #if !RETRO_USE_ORIGINAL_CODE
@@ -472,7 +476,11 @@ void RetroEngine::Run()
     float frameDeltaBlunt = 0.0f;
     Engine.deltaTime      = 0.0f;
 
+#if RETRO_PLATFORM == RETRO_WIIU
+    while (running && WHBProcIsRunning()) {
+#else
     while (running) {
+#endif
 #if !RETRO_USE_ORIGINAL_CODE
         frameStartBlunt = SDL_GetTicks();
         frameDeltaBlunt = frameStartBlunt - frameEndBlunt;
