@@ -4,6 +4,9 @@ stages:
     - container
     - build
 
+variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+
 container-build:
     stage: container
     image: docker:stable
