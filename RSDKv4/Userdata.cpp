@@ -333,7 +333,7 @@ void InitUserdata()
         if (!ini.GetInteger("Game", "Language", &Engine.language))
             Engine.language = RETRO_EN;
         if (!ini.GetBool("Game", "SkipStartMenu", &skipStartMenu))
-            skipStartMenu = false;
+            skipStartMenu = true;
         skipStartMenu_Config = skipStartMenu;
         if (!ini.GetBool("Game", "DisableFocusPause", &disableFocusPause))
             disableFocusPause = false;
