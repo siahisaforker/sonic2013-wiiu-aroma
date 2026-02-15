@@ -457,16 +457,23 @@ void RetroEngine::Init()
                 if (i > 0) {
                     // Try likely mounted paths inside a WUHB: /vol/external01/<folder>/Data.rsdk
                     char extPath[0x300];
-                    sprintf(extPath, "/vol/external01/%s/%s", folder, Engine.dataFile[0]);
-                    FileIO *extFile = fOpen(extPath, "rb");
-                    if (extFile) {
-                        fClose(extFile);
-                        StrCopy(dest, "/vol/external01/");
-                        StrAdd(dest, folder);
-                        StrAdd(dest, "/");
-                        StrAdd(dest, Engine.dataFile[0]);
-                        metaFound = true;
-                        printLog("metadata: found %s -> game_folder=%s; using %s", metaFoundPath ? metaFoundPath : "(unknown)", folder, dest);
+                    // Only accept explicit Sonic1 or Sonic2 folders to avoid picking up other
+                    // similarly-named Sonic releases (eg. SonicCD) that may be present on the SD.
+                    if (StrComp(folder, "Sonic1") && StrComp(folder, "Sonic2")) {
+                        printLog("metadata: ignoring unknown game_folder '%s' from %s", folder, metaFoundPath ? metaFoundPath : "(unknown)");
+                    }
+                    else {
+                        sprintf(extPath, "/vol/external01/%s/%s", folder, Engine.dataFile[0]);
+                        FileIO *extFile = fOpen(extPath, "rb");
+                        if (extFile) {
+                            fClose(extFile);
+                            StrCopy(dest, "/vol/external01/");
+                            StrAdd(dest, folder);
+                            StrAdd(dest, "/");
+                            StrAdd(dest, Engine.dataFile[0]);
+                            metaFound = true;
+                            printLog("metadata: found %s -> game_folder=%s; using %s", metaFoundPath ? metaFoundPath : "(unknown)", folder, dest);
+                        }
                     }
                 }
             }
