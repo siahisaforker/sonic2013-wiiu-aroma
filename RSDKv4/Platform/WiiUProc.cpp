@@ -33,15 +33,41 @@ bool WiiU_ProcIsRunning() { return WHBProcIsRunning(); }
 
 #endif
 
-// Default weak hooks for foreground release/acquire. Linkers on platforms
-// that need to free MEM1 or other foreground-only resources can override
-// these symbols; they are no-ops by default.
+// Default weak hooks for foreground release/acquire. Platforms that need
+// to free MEM1 or other foreground-only resources can override these
+// symbols. For safety, the engine provides an opt-in implementation that
+// will call the render-device helpers only when `ENABLE_WIIU_FOREGROUND_HANDLERS`
+// is defined at compile time.
 #if RETRO_PLATFORM == RETRO_WIIU
+// Prototypes are weak so platform code can still override them.
 extern "C" void WiiU_OnReleaseForeground() __attribute__((weak));
 extern "C" void WiiU_OnAcquireForeground() __attribute__((weak));
 
-void WiiU_OnReleaseForeground() { }
-void WiiU_OnAcquireForeground() { }
+#if defined(ENABLE_WIIU_FOREGROUND_HANDLERS)
+// Opt-in: use minimal, best-effort render-device calls to release/recreate
+// foreground graphics memory. Keep this guarded to avoid unexpected side
+// effects on platforms that don't expect these calls.
+extern int InitRenderDevice();
+extern void ReleaseRenderDevice();
+
+extern "C" void WiiU_OnReleaseForeground()
+{
+	// Best-effort: release the render device so the system can reclaim
+	// graphics memory while backgrounded. Avoid other global state changes.
+	ReleaseRenderDevice();
+}
+
+extern "C" void WiiU_OnAcquireForeground()
+{
+	// Best-effort: recreate the render device when returning to foreground.
+	InitRenderDevice();
+}
+#else
+// Default safe no-op implementations.
+extern "C" void WiiU_OnReleaseForeground() { }
+extern "C" void WiiU_OnAcquireForeground() { }
+#endif
+
 #endif
 
 #endif // RETRO_WIIU_CF_AROMA

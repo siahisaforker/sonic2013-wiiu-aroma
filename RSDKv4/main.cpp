@@ -6,6 +6,11 @@ int main(int argc, char *argv[])
         if (StrComp(argv[i], "UsingCWD"))
             usingCWD = true;
     }
+    if (argc > 0) {
+        // Record the path the program was launched from so the engine
+        // can determine which packaged folder (Sonic1/Sonic2) it's running from.
+        StrCopy(launchPath, argv[0]);
+    }
 
     SDL_SetHint(SDL_HINT_WINRT_HANDLE_BACK_BUTTON, "1");
     Engine.Init();

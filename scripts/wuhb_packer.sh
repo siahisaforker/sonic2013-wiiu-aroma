@@ -74,9 +74,17 @@ elif command -v convert >/dev/null 2>&1; then
 fi
 
 PKG_DIR="$OUT_DIR/wuhb_pack_$(date +%Y%m%d_%H%M%S)"
-mkdir -p "$PKG_DIR/wiiu/apps/RSDKv4"
 
-TARGET_ICON="$PKG_DIR/wiiu/apps/RSDKv4/icon.png"
+# Use a unique internal app folder so multiple WUHBs don't overwrite each other
+if [ "$CHOICE" = "1" ]; then
+  APP_INTERNAL="RSDKv4_Sonic1"
+else
+  APP_INTERNAL="RSDKv4_Sonic2"
+fi
+
+mkdir -p "$PKG_DIR/wiiu/apps/$APP_INTERNAL"
+
+TARGET_ICON="$PKG_DIR/wiiu/apps/$APP_INTERNAL/icon.png"
 if [ -n "$MAGICK_CMD" ]; then
   echo "Converting icon to PNG using $MAGICK_CMD..."
   "$MAGICK_CMD" "$FOUND_ICON" -resize 256x256 "$TARGET_ICON"
@@ -88,7 +96,7 @@ fi
 # Handle optional banner (TV/DRC images)
 TARGET_BANNER=""
 if [ -n "$FOUND_BANNER" ]; then
-  TARGET_BANNER="$PKG_DIR/wiiu/apps/RSDKv4/banner.png"
+  TARGET_BANNER="$PKG_DIR/wiiu/apps/$APP_INTERNAL/banner.png"
   if [ -n "$MAGICK_CMD" ]; then
     echo "Converting banner to PNG using $MAGICK_CMD..."
     "$MAGICK_CMD" "$FOUND_BANNER" -resize 1280x720 "$TARGET_BANNER"
@@ -99,14 +107,25 @@ fi
 
 
 
-cp "$RPX_PATH" "$PKG_DIR/wiiu/apps/RSDKv4/RSDKv4.rpx"
+# Build a package-specific RPX so the binary can be compiled with PACKAGED_GAME
+# and will prefer the correct external Data folder even if argv[0] is unhelpful.
+echo "Building RPX with PACKAGED_GAME=$CHOICE..."
+(cd "$ROOT_DIR" && make -f Makefile.wiiu clean >/dev/null 2>&1 || true)
+(cd "$ROOT_DIR" && make -f Makefile.wiiu PACKAGED_GAME="$CHOICE")
+RPX_PATH="$ROOT_DIR/bin/RSDKv4.rpx"
+cp "$RPX_PATH" "$PKG_DIR/wiiu/apps/$APP_INTERNAL/RSDKv4.rpx"
 
-cat > "$PKG_DIR/wiiu/apps/RSDKv4/metadata.txt" <<EOF
+cat > "$PKG_DIR/wiiu/apps/$APP_INTERNAL/metadata.txt" <<EOF
 title=RSDKv4 Homebrew
 game=RSDKv4
 source=Sonic $CHOICE
+game_folder=Sonic${CHOICE}
 pack_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 EOF
+
+# Also place a copy of metadata at /code/ so the runtime can read it from /code/metadata.txt
+mkdir -p "$PKG_DIR/wiiu/code"
+cp "$PKG_DIR/wiiu/apps/$APP_INTERNAL/metadata.txt" "$PKG_DIR/wiiu/code/metadata.txt"
 
 mkdir -p "$OUT_DIR"
 OUT_FILE="$OUT_DIR/Sonic${CHOICE}.wuhb"
@@ -133,11 +152,11 @@ if [ -z "${WUHB_CMD:-}" ] || [ ! -x "$WUHB_CMD" ]; then
   exit 1
 fi
 
-RPX_IN="$PKG_DIR/wiiu/apps/RSDKv4/RSDKv4.rpx"
+RPX_IN="$PKG_DIR/wiiu/apps/$APP_INTERNAL/RSDKv4.rpx"
 CONTENT_DIR="$PKG_DIR/wiiu"
 
 echo "Creating .wuhb using $WUHB_CMD..."
-CMD=("$WUHB_CMD" "$RPX_IN" "$OUT_FILE" --content "$CONTENT_DIR" --icon "$TARGET_ICON" --name "RSDKv4 Homebrew" --short-name "RSDKv4" --author "RSDKv4 Packager")
+CMD=("$WUHB_CMD" "$RPX_IN" "$OUT_FILE" --content "$CONTENT_DIR" --icon "$TARGET_ICON" --name "RSDKv4 Homebrew" --short-name "RSDKv4_${CHOICE}" --author "RSDKv4 Packager")
 if [ -n "$TARGET_BANNER" ]; then
   CMD+=(--tv-image "$TARGET_BANNER" --drc-image "$TARGET_BANNER")
 fi
