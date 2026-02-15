@@ -7,7 +7,10 @@ ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitPro")
 endif
 
-PKGCONFIG ?= $(DEVKITPRO)/portlibs/wiiu/bin/powerpc-eabi-pkg-config
+# Allow overriding the portlibs root so you can test a different SDL2 package
+# e.g. set `PORTLIBS=/opt/devkitpro/portlibs/wiiu-sdl2-dkosmari-2.28.5-3` when calling make
+PORTLIBS ?= $(DEVKITPRO)/portlibs/wiiu
+PKGCONFIG ?= $(PORTLIBS)/bin/powerpc-eabi-pkg-config
 
 include $(DEVKITPRO)/wut/share/wut_rules
 
@@ -15,7 +18,7 @@ CXXFLAGS_ALL = $(shell $(PKGCONFIG) --cflags --static sdl2 vorbisfile vorbis) $(
                $(MACHDEP) -O2 -g -ffunction-sections -fdata-sections \
                -D__WIIU__ -D__WUT__ \
                -DPACKAGED_GAME=$(PACKAGED_GAME) \
-               -I$(WUT_ROOT)/include \
+            -I$(WUT_ROOT)/include \
                -DBASE_PATH='"$(BASE_PATH)"' \
                -DSTBI_NO_THREAD_LOCALS \
                -IRSDKv4/ \
@@ -27,7 +30,7 @@ CXXFLAGS_ALL = $(shell $(PKGCONFIG) --cflags --static sdl2 vorbisfile vorbis) $(
 LDFLAGS += $(ARCH) $(RPXSPECS)
 # Ensure the WUT library directory is searched when linking so -lwut is found.
 LDFLAGS += -L$(WUT_ROOT)/lib
-LIBS = $(shell $(PKGCONFIG) --libs --static sdl2 vorbisfile vorbis)
+LIBS = $(shell PKG_CONFIG_PATH=$(PORTLIBS)/lib/pkgconfig $(PKGCONFIG) --libs --static sdl2 vorbisfile vorbis)
 
 SOURCES = \
           dependencies/all/tinyxml2/tinyxml2.cpp \
