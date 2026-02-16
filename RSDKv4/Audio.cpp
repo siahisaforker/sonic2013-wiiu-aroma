@@ -635,7 +635,7 @@ void LoadSfx(char *filePath, byte sfxID)
                 byte *wav_buffer;
                 SDL_AudioSpec *wav = SDL_LoadWAV_RW(src, 0, &wav_spec, &wav_buffer, &wav_length);
 
-                SDL_RWclose(src);
+                SDL_FreeRW(src);
                 delete[] sfx;
                 if (wav == NULL) {
                     printLog("Unable to read sfx: %s", info.fileName);
