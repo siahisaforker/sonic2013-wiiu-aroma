@@ -4,3 +4,6 @@
 [submodule "dependencies/all/stb_image"]
 	path = dependencies/all/stb-image
 	url = https://github.com/nothings/stb
+[submodule "dependencies/all/asio"]
+	path = dependencies/all/asio
+	url = https://github.com/chriskohlhoff/asio
