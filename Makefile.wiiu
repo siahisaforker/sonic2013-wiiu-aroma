@@ -94,6 +94,7 @@ SOURCES = \
           RSDKv4/NativeObjects/VirtualDPadM.cpp \
           RSDKv4/NativeObjects/ZoneButton.cpp \
           RSDKv4/Platform/WiiUProc.cpp \
+          RSDKv4/Platform/SDL_compat.cpp \
 
 ifneq ($(FORCE_CASE_INSENSITIVE),)
 	CXXFLAGS_ALL += -DFORCE_CASE_INSENSITIVE
