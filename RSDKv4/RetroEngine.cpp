@@ -54,7 +54,13 @@ bool processEvents()
                         Engine.isFullScreen = true;
                         break;
                     }
-                    case SDL_WINDOWEVENT_CLOSE: return false;
+                    case SDL_WINDOWEVENT_CLOSE: {
+                        SDL_Event ev;
+                        SDL_zero(ev);
+                        ev.type = SDL_QUIT;
+                        SDL_PushEvent(&ev);
+                        break;
+                    }
                     case SDL_WINDOWEVENT_FOCUS_LOST:
                         if (Engine.gameMode == ENGINE_MAINGAME && !disableFocusPause)
                             Engine.gameMode = ENGINE_INITPAUSE;
@@ -67,7 +73,13 @@ bool processEvents()
                 if (Engine.gameMode == ENGINE_MAINGAME && !disableFocusPause)
                     Engine.gameMode = ENGINE_INITPAUSE;
                 break;
-            case SDL_APP_TERMINATING: return false;
+            case SDL_APP_TERMINATING: {
+                SDL_Event ev;
+                SDL_zero(ev);
+                ev.type = SDL_QUIT;
+                SDL_PushEvent(&ev);
+                break;
+            }
 #endif
 
 #if RETRO_USING_SDL2 && defined(RETRO_USING_MOUSE)
@@ -694,10 +706,12 @@ void RetroEngine::Run()
                 break;
             case PROCUI_STATUS_EXITING:
                 // Requesting an exit: give app a chance to clean up and then
-                // shut down ProcUI and stop the main loop.
+                // shut down ProcUI. Instead of forcing the main loop to stop
+                // immediately, post an SDL_QUIT event so the normal SDL event
+                // handling will observe it and allow the app to exit only
+                // after the SDL_QUIT event is processed.
                 WiiU_OnReleaseForeground();
                 ProcUIShutdown();
-                running = false;
                 // devkitPro's ProcUI implementation can be buggy and apps
                 // may not receive an SDL_QUIT event. Ensure SDL gets notified
                 // so SDL-based event loops and cleanup paths run immediately.
