@@ -7,3 +7,6 @@
 [submodule "dependencies/all/asio"]
 	path = dependencies/all/asio
 	url = https://github.com/chriskohlhoff/asio
+[submodule "dependencies/all/SDL"]
+	path = dependencies/all/SDL
+	url = https://github.com/yawut/SDL
