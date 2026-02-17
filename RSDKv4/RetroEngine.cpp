@@ -301,9 +301,8 @@ void RetroEngine::Init()
     Engine.usingBytecode = false;
 
 #if !RETRO_USE_ORIGINAL_CODE
+#if 1
     InitUserdata();
-#if RETRO_USE_MOD_LOADER
-    initMods();
 #endif
 #if RETRO_USE_NETWORKING
     initNetwork();
@@ -528,6 +527,82 @@ void RetroEngine::Init()
     StrAdd(dest, Engine.dataFile[0]);
 #endif
 #endif
+
+#if RETRO_PLATFORM == RETRO_WIIU
+    // Attempt to locate a `mods/` folder inside the mounted WUHB content
+    // Common mount points vary by launcher; check likely locations and pick the first that exists.
+    const char *modCandidates[] = {
+        // First, check WUHB-wide mods folder exposed at /vol/content/mods/
+        "/vol/content/mods/",
+        // Common WUHB / content mount points
+        "/vol/content/apps/RSDKv4_Sonic1/mods/",
+        "/vol/content/apps/RSDKv4_Sonic2/mods/",
+        "/vol/content/apps/RSDKv4/mods/",
+        "/content/apps/RSDKv4_Sonic1/mods/",
+        "/content/apps/RSDKv4_Sonic2/mods/",
+        "/content/apps/RSDKv4/mods/",
+        // Some launchers expose the WUHB under /vol/external01/wiiu/apps
+        "/vol/external01/wiiu/apps/RSDKv4_Sonic1/mods/",
+        "/vol/external01/wiiu/apps/RSDKv4_Sonic2/mods/",
+        "/vol/external01/wiiu/apps/RSDKv4/mods/",
+        // Legacy per-game folders next to mounted Data.rsdk
+        "/vol/external01/Sonic1/mods/",
+        "/vol/external01/Sonic2/mods/",
+        NULL
+    };
+
+    for (int mi = 0; modCandidates[mi]; ++mi) {
+        DIR *d = opendir(modCandidates[mi]);
+        if (d) {
+            closedir(d);
+            // copy into global `modsPath` so ModAPI will use it
+            StrCopy(modsPath, modCandidates[mi]);
+            printLog("modsPath set to %s", modsPath);
+
+            // Print the chosen mods directory contents to aid debugging on-device
+            {
+                DIR *dd = opendir(modsPath);
+                if (dd) {
+                    struct dirent *e;
+                    printLog("modsPath contents (%s):", modsPath);
+                    while ((e = readdir(dd)) != NULL) {
+                        printLog(" - %s", e->d_name);
+                    }
+                    closedir(dd);
+                }
+                else {
+                    printLog("modsPath exists but opendir failed: %s", modsPath);
+                }
+            }
+            break;
+        }
+    }
+
+    // If no modsPath was found by directory, try to detect a modconfig.ini
+    // inside the likely mount points (some launchers expose files but not
+    // directories). This ensures mods included in a WUHB are detected.
+    if (!modsPath[0]) {
+        for (int mi = 0; modCandidates[mi]; ++mi) {
+            char cfgPath[0x300];
+            sprintf(cfgPath, "%smodconfig.ini", modCandidates[mi]);
+            FileIO *cfgFile = fOpen(cfgPath, "rb");
+            if (cfgFile) {
+                fClose(cfgFile);
+                StrCopy(modsPath, modCandidates[mi]);
+                printLog("modsPath set (via modconfig) to %s", modsPath);
+                break;
+            }
+        }
+    }
+
+#if RETRO_USE_MOD_LOADER
+    // Initialize mods after we've determined the modsPath so the loader can
+    // discover packaged mods exposed by the runtime environment immediately
+    // during startup instead of waiting for a later reload.
+    initMods();
+#endif
+#endif
+
     CheckRSDKFile(dest);
 #else
     CheckRSDKFile("Data.rsdk");

@@ -16,7 +16,29 @@ FROM devkitpro/devkitppc:20210726
 COPY --from=wut-build /wut-out/ /
 COPY --from=sdl-build /sdl-out/ /
 
-WORKDIR /app
-CMD make -f Makefile.wiiu -j$(nproc)
+# Workaround: Debian Buster archive has moved, point apt to archive mirrors
+RUN set -eux; \
+  echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until; \
+  # remove any existing .list files (these may reference deb.debian.org/backports)
+  rm -f /etc/apt/sources.list.d/* || true; \
+  printf 'deb http://archive.debian.org/debian buster main contrib non-free\n' > /etc/apt/sources.list; \
+  printf 'deb http://archive.debian.org/debian-security buster/updates main contrib non-free\n' >> /etc/apt/sources.list; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    libsdl2-dev \
+    libvorbis-dev \
+    libglew-dev \
+    unzip \
+    wget \
+    cmake \
+    ca-certificates; \
+  rm -rf /var/lib/apt/lists/*
 
-# Number of times I regret putting only:changes:Dockerfile in the CI config: 1
+# Ensure pkg-config can find the portlibs installed earlier (set explicitly)
+ENV PKG_CONFIG_PATH=/opt/devkitpro/portlibs/wiiu/lib/pkgconfig:/opt/devkitpro/portlibs/ppc/lib/pkgconfig
+
+WORKDIR /app
+CMD ["make", "-f", "Makefile.wiiu", "-j$(nproc)"]
+

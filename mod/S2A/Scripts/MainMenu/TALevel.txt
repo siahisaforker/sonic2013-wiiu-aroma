@@ -1,0 +1,151 @@
+// ----------------------------------
+// RSDK Project: Sonic 1/Sonic 2
+// Script Description: Sonic Team Object
+// Script Author: Christan Whitehead/Simon Thomley
+// Unpacked by Rubberduckycooly's script unpacker
+// ----------------------------------
+
+
+//-------Aliases-------//
+private alias 20 : charspeed
+
+//-------Tables--------//
+
+
+
+event ObjectMain
+	foreach (TypeName[Time Attack Screen], arrayPos0, ALL_ENTITIES)
+		switch object[arrayPos0].state
+			case 0
+			case 100
+				object.value0 = 300
+				break
+			default
+				if object[arrayPos0].value11 == object.propertyValue
+					object.value0 = -10
+				else
+					object.value0 = 300
+				end if
+				break
+		end switch		
+	next
+	
+	temp0 = object.value1
+	temp0 -= object.value0
+	Abs(temp0)
+	if temp0 < charspeed
+		object.value1 = object.value0
+	end if
+	
+	if object.value1 > object.value0
+		object.value1 -= charspeed
+	else
+		if object.value1 < object.value0
+			object.value1 += charspeed
+		end if
+	end if
+	
+end event
+
+event ObjectDraw
+	if object.value11 == 0
+		switch object.propertyValue
+			case 0
+			case 1
+				object.value10 = 0
+				break
+			case 2
+			case 3
+				object.value10 = 1
+				break
+			case 4
+			case 5
+				object.value10 = 2
+				break
+			case 6
+			case 7
+				object.value10 = 3
+				break
+			case 8
+			case 9
+				object.value10 = 4
+				break
+			case 10
+			case 11
+				object.value10 = 5
+				break
+			case 12
+			case 13
+				object.value10 = 6
+				break
+			case 14
+			case 15
+			case 16
+				object.value10 = 7
+				break
+			case 17
+				object.value10 = 8
+				break
+			case 18
+				object.value10 = 9
+				break	
+		end switch
+		
+		switch object.propertyValue
+			case 16
+				object.value11 = 12
+					break
+			case 17
+			case 18	
+				object.value11 = 13
+					break
+			default
+				object.value11 = object.propertyValue
+				object.value11 %= 2
+				object.value11 += 10
+					break
+		end switch
+	end if
+	
+	temp1 = screen.xsize
+	temp1 += object.value1
+	
+	DrawSpriteScreenXY(object.value10, temp1, 40)
+	DrawSpriteScreenXY(object.value11, temp1, 40)
+end event
+
+
+//Startup
+
+event ObjectStartup
+	LoadSpriteSheet("Menus/TimeAttackScreen.gif")
+	
+	SpriteFrame(-188, 0, 188, 40, 1, 1) //0 Emerald Hill
+	SpriteFrame(-220, 0, 220, 40, 1, 42) //1 Chemical Plant
+	SpriteFrame(-174, 0, 174, 40, 1, 83) //2 Aquatic Ruin
+	SpriteFrame(-175, 0, 175, 40, 1, 124) //3 Casino Night
+	SpriteFrame(-120, 0, 120, 40, 1, 165) //4 Hill Top
+	SpriteFrame(-173, 0, 173, 40, 1, 206) //5 Mystic Cave
+	SpriteFrame(-134, 0, 134, 40, 1, 247) //6 Oil Ocean
+	SpriteFrame(-158, 0, 158, 40, 1, 288) //7 Metropolis
+	SpriteFrame(-204, 0, 204, 40, 1, 329) //8 Wing Fortress
+	SpriteFrame(-141, 0, 141, 40, 1, 370) //9 Death Egg
+	
+	//Acts
+	SpriteFrame(-24, 24, 16, 29, 136, 247) //10 Act 1
+	SpriteFrame(-24, 24, 23, 29, 153, 247) //11 Act 2
+	SpriteFrame(-24, 24, 23, 32, 177, 247) //12 Act 3
+	SpriteFrame(0, 0, 0, 0, 0, 0) //13 No Act num
+	
+	
+	temp0 = 0
+	while temp0 < 19
+		CreateTempObject(TypeName[Level Label], temp0, 0, 0)
+		object[tempObjectPos].value0 = 300
+		object[tempObjectPos].value1 = 300
+		temp0++
+	loop
+end event
+
+
+
