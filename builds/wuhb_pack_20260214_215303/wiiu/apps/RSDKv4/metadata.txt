@@ -1,5 +1,0 @@
-title=RSDKv4 Homebrew
-game=RSDKv4
-source=Sonic 2
-game_folder=Sonic2
-pack_time=2026-02-15T05:53:04Z
