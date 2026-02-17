@@ -276,3 +276,6 @@ objects/
 .idea/
 android/key/
 android/local.properties
+
+# Docker config (sensitive)
+.docker-config/
