@@ -279,3 +279,6 @@ android/local.properties
 
 # Docker config (sensitive)
 .docker-config/
+
+# Wii U SDL2 package artifacts
+wiiu-sdl2-package/
