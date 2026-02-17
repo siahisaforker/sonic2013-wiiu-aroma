@@ -109,11 +109,22 @@ fi
 
 # Build a package-specific RPX so the binary can be compiled with PACKAGED_GAME
 # and will prefer the correct external Data folder even if argv[0] is unhelpful.
-echo "Building RPX with PACKAGED_GAME=$CHOICE..."
-(cd "$ROOT_DIR" && make -f Makefile.wiiu clean >/dev/null 2>&1 || true)
-(cd "$ROOT_DIR" && make -f Makefile.wiiu PACKAGED_GAME="$CHOICE")
-RPX_PATH="$ROOT_DIR/bin/RSDKv4.rpx"
-cp "$RPX_PATH" "$PKG_DIR/wiiu/apps/$APP_INTERNAL/RSDKv4.rpx"
+# Allow skipping the build with SKIP_BUILD=1 to only run the pack step.
+if [ "${SKIP_BUILD:-0}" = "1" ] || [ "${SKIP_BUILD:-}" = "true" ]; then
+  echo "SKIP_BUILD set; skipping make. Using existing $ROOT_DIR/bin/RSDKv4.rpx"
+  RPX_PATH="$ROOT_DIR/bin/RSDKv4.rpx"
+  if [ ! -f "$RPX_PATH" ]; then
+    echo "ERROR: RPX not found at $RPX_PATH; cannot continue when SKIP_BUILD=1" >&2
+    exit 1
+  fi
+  cp "$RPX_PATH" "$PKG_DIR/wiiu/apps/$APP_INTERNAL/RSDKv4.rpx"
+else
+  echo "Building RPX with PACKAGED_GAME=$CHOICE..."
+  (cd "$ROOT_DIR" && make -f Makefile.wiiu clean >/dev/null 2>&1 || true)
+  (cd "$ROOT_DIR" && make -f Makefile.wiiu PACKAGED_GAME="$CHOICE")
+  RPX_PATH="$ROOT_DIR/bin/RSDKv4.rpx"
+  cp "$RPX_PATH" "$PKG_DIR/wiiu/apps/$APP_INTERNAL/RSDKv4.rpx"
+fi
 
 cat > "$PKG_DIR/wiiu/apps/$APP_INTERNAL/metadata.txt" <<EOF
 title=RSDKv4 Homebrew
@@ -126,6 +137,69 @@ EOF
 # Also place a copy of metadata at /code/ so the runtime can read it from /code/metadata.txt
 mkdir -p "$PKG_DIR/wiiu/code"
 cp "$PKG_DIR/wiiu/apps/$APP_INTERNAL/metadata.txt" "$PKG_DIR/wiiu/code/metadata.txt"
+cp "$PKG_DIR/wiiu/apps/$APP_INTERNAL/metadata.txt" "$PKG_DIR/wiiu/code/metadata.txt"
+
+# Determine the matching repo mod for the selected game
+MOD_SRC=""
+MOD_FOLDER_NAME=""
+MOD_DIR_NAME=""
+DISPLAY_NAME=""
+if [ "$CHOICE" = "1" ]; then
+  DISPLAY_NAME="Sonic Forever Mod"
+  # prefer folder named exactly the display name, fall back to common alternatives
+  if [ -d "$ROOT_DIR/mod/$DISPLAY_NAME" ]; then
+    MOD_DIR_NAME="$DISPLAY_NAME"
+    MOD_SRC="$ROOT_DIR/mod/$MOD_DIR_NAME"
+  elif [ -d "$ROOT_DIR/mod/SonicForeverMod" ]; then
+    MOD_DIR_NAME="SonicForeverMod"
+    MOD_SRC="$ROOT_DIR/mod/$MOD_DIR_NAME"
+  fi
+else
+  DISPLAY_NAME="Sonic 2 Absolute"
+  # prefer a folder named "Sonic 2 Absolute", but fall back to existing "S2A" folder
+  if [ -d "$ROOT_DIR/mod/$DISPLAY_NAME" ]; then
+    MOD_DIR_NAME="$DISPLAY_NAME"
+    MOD_SRC="$ROOT_DIR/mod/$MOD_DIR_NAME"
+  elif [ -d "$ROOT_DIR/mod/S2A" ]; then
+    MOD_DIR_NAME="S2A"
+    MOD_SRC="$ROOT_DIR/mod/S2A"
+  fi
+fi
+
+# Allow non-interactive control of whether to include the mod (fourth arg)
+INCLUDE_MOD_ARG="${4:-}"
+if [ -n "$INCLUDE_MOD_ARG" ]; then
+  INCLUDE_MOD="$INCLUDE_MOD_ARG"
+elif [ -t 0 ]; then
+  read -rp "Include repo mod '$DISPLAY_NAME' in package? [Y/n]: " INCLUDE_MOD
+elif [ -r /dev/tty ]; then
+  read -rp "Include repo mod '$DISPLAY_NAME' in package? [Y/n]: " INCLUDE_MOD </dev/tty
+else
+  # No interactive terminal available; default to yes
+  INCLUDE_MOD="y"
+fi
+
+# Normalize and decide
+INCLUDE_MOD="$(printf '%s' "$INCLUDE_MOD" | tr '[:upper:]' '[:lower:]')"
+if [ "$INCLUDE_MOD" = "1" ] || [ "$INCLUDE_MOD" = "y" ] || [ "$INCLUDE_MOD" = "yes" ] || [ "$INCLUDE_MOD" = "true" ]; then
+  INCLUDE=true
+else
+  INCLUDE=false
+fi
+
+if [ "$INCLUDE" = true ]; then
+  if [ -n "$MOD_SRC" ] && [ -d "$MOD_SRC" ]; then
+    echo "Including mod '$DISPLAY_NAME' (folder: $MOD_DIR_NAME) from $MOD_SRC into package"
+    mkdir -p "$PKG_DIR/wiiu/apps/$APP_INTERNAL/mods"
+    cp -r "$MOD_SRC" "$PKG_DIR/wiiu/apps/$APP_INTERNAL/mods/"
+    # write a modconfig.ini that enables this mod by default
+    printf '[mods]\n%s=true\n' "$MOD_DIR_NAME" > "$PKG_DIR/wiiu/apps/$APP_INTERNAL/mods/modconfig.ini"
+  else
+    echo "Mod source not found for '$DISPLAY_NAME' (tried: $MOD_SRC); skipping mod include."
+  fi
+else
+  echo "Skipping inclusion of repo mod '$DISPLAY_NAME'."
+fi
 
 mkdir -p "$OUT_DIR"
 OUT_FILE="$OUT_DIR/Sonic${CHOICE}.wuhb"

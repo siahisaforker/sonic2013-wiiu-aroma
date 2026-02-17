@@ -35,13 +35,29 @@ namespace fs = std::filesystem;
 
 void initMods()
 {
+    printLog("initMods: modsPath='%s'", modsPath);
     modList.clear();
     forceUseScripts   = forceUseScripts_Config;
     disableFocusPause = disableFocusPause_Config;
     redirectSave      = false;
     sprintf(savePath, "");
     char modBuf[0x100];
-    sprintf(modBuf, "%smods", modsPath);
+    // `modsPath` may already point to the `.../mods/` directory or to the parent
+    // folder. Normalize so `modPath` always points to the actual `mods` directory.
+    if (StrLength(modsPath) > 0) {
+        int len = StrLength(modsPath);
+        // If modsPath already ends with "mods" or "mods/", use it directly
+        if ((len >= 4 && StrComp(&modsPath[len - 4], "mods") == 0) ||
+            (len >= 5 && StrComp(&modsPath[len - 5], "mods/") == 0)) {
+            StrCopy(modBuf, modsPath);
+        }
+        else {
+            sprintf(modBuf, "%smods", modsPath);
+        }
+    }
+    else {
+        sprintf(modBuf, "mods");
+    }
     fs::path modPath(modBuf);
 
 
@@ -52,12 +68,21 @@ void initMods()
             fClose(configFile);
             IniParser modConfig(mod_config.c_str(), false);
 
+            printLog("Found modconfig.ini: %s (entries=%d)", mod_config.c_str(), (int)modConfig.items.size());
             for (int m = 0; m < modConfig.items.size(); ++m) {
                 bool active = false;
                 ModInfo info;
+                const char *key = modConfig.items[m].key;
                 modConfig.GetBool("mods", modConfig.items[m].key, &active);
-                if (loadMod(&info, modPath.string(), modConfig.items[m].key, active))
+                printLog("modconfig entry: '%s' active=%d", key, active);
+                printLog("-> loadMod(folder='%s')", key);
+                if (loadMod(&info, modPath.string(), modConfig.items[m].key, active)) {
+                    printLog("loadMod succeeded for '%s' (name='%s')", key, info.name.c_str());
                     modList.push_back(info);
+                }
+                else {
+                    printLog("loadMod failed for '%s'", key);
+                }
             }
         }
 
@@ -92,13 +117,21 @@ void initMods()
                     }
 
                     if (flag) {
-                        if (loadMod(&info, modPath.string(), modDirPath.filename().string(), false))
+                        printLog("Directory-scan: attempting loadMod(folder='%s', active=0)", modDirPath.filename().string().c_str());
+                        if (loadMod(&info, modPath.string(), modDirPath.filename().string(), false)) {
+                            printLog("Directory-scan: loadMod succeeded for '%s'", modDirPath.filename().string().c_str());
                             modList.push_back(info);
+                        }
+                        else {
+                            printLog("Directory-scan: loadMod failed for '%s'", modDirPath.filename().string().c_str());
+                        }
                     }
                 }
             }
         } else printLog("Error scanning mods folder");
     }
+
+    printLog("initMods: finished, discovered %d mods", (int)modList.size());
 
     forceUseScripts   = false;
     skipStartMenu     = skipStartMenu_Config;
@@ -144,6 +177,7 @@ bool loadMod(ModInfo *info, std::string modsPath, std::string folder, bool activ
     FileIO *f = fOpen((modDir + "/mod.ini").c_str(), "r");
     if (f) {
         fClose(f);
+        printLog("loadMod: found mod.ini at %s (active=%d)", modDir.c_str(), active);
         IniParser modSettings((modDir + "/mod.ini").c_str(), false);
 
         info->name    = "Unnamed Mod";
@@ -178,6 +212,8 @@ bool loadMod(ModInfo *info, std::string modsPath, std::string folder, bool activ
 
         scanModFolder(info);
 
+        printLog("scanModFolder completed for '%s', fileMap entries=%d", info->folder.c_str(), (int)info->fileMap.size());
+
         info->useScripts = false;
         modSettings.GetBool("", "TxtScripts", &info->useScripts);
         if (info->useScripts && info->active)
@@ -201,6 +237,8 @@ bool loadMod(ModInfo *info, std::string modsPath, std::string folder, bool activ
             info->savePath = path;
         }
 
+        printLog("loadMod: name='%s' folder='%s' active=%d useScripts=%d skipStartMenu=%d disableFocusPause=%d redirectSave=%d", info->name.c_str(), info->folder.c_str(), info->active, info->useScripts, info->skipStartMenu, info->disableFocusPause, info->redirectSave);
+
         return true;
     }
     return false;
@@ -211,8 +249,25 @@ void scanModFolder(ModInfo *info)
     if (!info)
         return;
 
+    printLog("scanModFolder: folder='%s' modsPath='%s'", info->folder.c_str(), modsPath);
+
     char modBuf[0x100];
-    sprintf(modBuf, "%smods", modsPath);
+    // Normalize `modsPath` the same way `initMods()` does so we don't end up
+    // with paths like ".../mods/mods/..." when `modsPath` already ends with
+    // "mods" or "mods/".
+    if (StrLength(modsPath) > 0) {
+        int len = StrLength(modsPath);
+        if ((len >= 4 && StrComp(&modsPath[len - 4], "mods") == 0) ||
+            (len >= 5 && StrComp(&modsPath[len - 5], "mods/") == 0)) {
+            StrCopy(modBuf, modsPath);
+        }
+        else {
+            sprintf(modBuf, "%smods", modsPath);
+        }
+    }
+    else {
+        sprintf(modBuf, "mods");
+    }
 
     fs::path modPath(modBuf);
 
@@ -224,6 +279,7 @@ void scanModFolder(ModInfo *info)
     fs::path dataPath(modDir + "/Data");
 
     if (fs::exists(dataPath) && fs::is_directory(dataPath)) {
+        printLog("scanModFolder: found Data folder: %s", dataPath.string().c_str());
         try {
             auto data_rdi = fs::recursive_directory_iterator(dataPath);
             for (auto &data_de : data_rdi) {
@@ -259,6 +315,7 @@ void scanModFolder(ModInfo *info)
                         }
 
                         info->fileMap.insert(std::pair<std::string, std::string>(pathLower, modBuf));
+                        printLog("scanModFolder: mapping '%s' -> '%s'", pathLower, modBuf);
                     }
                 }
             }
@@ -272,6 +329,7 @@ void scanModFolder(ModInfo *info)
     fs::path scriptPath(modDir + "/Scripts");
 
     if (fs::exists(scriptPath) && fs::is_directory(scriptPath)) {
+        printLog("scanModFolder: found Scripts folder: %s", scriptPath.string().c_str());
         try {
             auto data_rdi = fs::recursive_directory_iterator(scriptPath);
             for (auto &data_de : data_rdi) {
@@ -307,6 +365,7 @@ void scanModFolder(ModInfo *info)
                         }
 
                         info->fileMap.insert(std::pair<std::string, std::string>(pathLower, modBuf));
+                        printLog("scanModFolder: mapping '%s' -> '%s'", pathLower, modBuf);
                     }
                 }
             }
@@ -320,6 +379,7 @@ void scanModFolder(ModInfo *info)
     fs::path bytecodePath(modDir + "/Bytecode");
 
     if (fs::exists(bytecodePath) && fs::is_directory(bytecodePath)) {
+        printLog("scanModFolder: found Bytecode folder: %s", bytecodePath.string().c_str());
         try {
             auto data_rdi = fs::recursive_directory_iterator(bytecodePath);
             for (auto &data_de : data_rdi) {
@@ -355,6 +415,7 @@ void scanModFolder(ModInfo *info)
                         }
 
                         info->fileMap.insert(std::pair<std::string, std::string>(pathLower, modBuf));
+                        printLog("scanModFolder: mapping '%s' -> '%s'", pathLower, modBuf);
                     }
                 }
             }
