@@ -127,7 +127,7 @@ else
 fi
 
 cat > "$PKG_DIR/wiiu/apps/$APP_INTERNAL/metadata.txt" <<EOF
-title=RSDKv4 Homebrew
+title=Sonic $CHOICE
 game=RSDKv4
 source=Sonic $CHOICE
 game_folder=Sonic${CHOICE}
@@ -230,7 +230,7 @@ RPX_IN="$PKG_DIR/wiiu/apps/$APP_INTERNAL/RSDKv4.rpx"
 CONTENT_DIR="$PKG_DIR/wiiu"
 
 echo "Creating .wuhb using $WUHB_CMD..."
-CMD=("$WUHB_CMD" "$RPX_IN" "$OUT_FILE" --content "$CONTENT_DIR" --icon "$TARGET_ICON" --name "RSDKv4 Homebrew" --short-name "RSDKv4_${CHOICE}" --author "RSDKv4 Packager")
+CMD=("$WUHB_CMD" "$RPX_IN" "$OUT_FILE" --content "$CONTENT_DIR" --icon "$TARGET_ICON" --name "Sonic $CHOICE" --short-name "Sonic${CHOICE}" --author "RSDKv4 Packager")
 if [ -n "$TARGET_BANNER" ]; then
   CMD+=(--tv-image "$TARGET_BANNER" --drc-image "$TARGET_BANNER")
 fi

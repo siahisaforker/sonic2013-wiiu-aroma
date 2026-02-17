@@ -87,9 +87,9 @@ if ($foundBanner) {
 Copy-Item -Path $RpxPath -Destination (Join-Path $pkgDir 'wiiu\apps\RSDKv4\RSDKv4.rpx') -Force
 
 Set-Content -Path (Join-Path $pkgDir 'wiiu\apps\RSDKv4\metadata.txt') -Value @(
-    "title=RSDKv4 Homebrew",
+    ("title=Sonic {0}" -f $choice),
     "game=RSDKv4",
-    "source=Sonic $choice",
+    ("source=Sonic {0}" -f $choice),
     ("pack_time={0}" -f (Get-Date -Format o))
 )
 
@@ -119,7 +119,7 @@ $contentDir = Join-Path $pkgDir 'wiiu'
 
 Write-Host "Creating .wuhb using $wuhbCmd..."
 try {
-    $args = @($rpxIn, $outFile, '--content', $contentDir, '--icon', $targetIcon, '--name', 'RSDKv4 Homebrew', '--short-name', 'RSDKv4', '--author', 'RSDKv4 Packager')
+    $args = @($rpxIn, $outFile, '--content', $contentDir, '--icon', $targetIcon, '--name', ("Sonic {0}" -f $choice), '--short-name', ("Sonic{0}" -f $choice), '--author', 'RSDKv4 Packager')
     if ($targetBanner) { $args += @('--tv-image', $targetBanner, '--drc-image', $targetBanner) }
     & $wuhbCmd @args | Out-Null
     Write-Host "Wuhb package created: $outFile"
