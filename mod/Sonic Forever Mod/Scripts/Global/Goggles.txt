@@ -1,0 +1,568 @@
+// ----------------------------------
+// RSDK Project: Sonic 1/Sonic 2
+// Script Description: Goggles Object
+// Script Author: Christan Whitehead/Simon Thomley
+// Unpacked by Rubberduckycooly's script unpacker
+// ----------------------------------
+
+//-------Aliases-------//
+private alias 79 : TYPE_GOGGLES
+
+
+// Static Values
+
+// Tables
+
+private table Goggles_table0
+	1, 2, 0, 8, 11, 14, 20, 24, 190, 0, 208, 31, 32, 0, 0, 34, 39, 40, 44, 44, 0, 46, 0, 48, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 224, 194, 198
+end table
+
+private table Goggles_table1
+	50, 51, 0, 205, 202, 56, 64, 68, 216, 0, 0, 70, 72, 0, 0, 74, 79, 80, 84, 84, 0, 0, 0, 86, 88, 90, 92, 218, 0, 0, 0, 0, 0, 0, 0, 72, 0, 0, 0, 0, 0, 0, 0, 229, 0, 0
+end table
+
+private table Goggles_table2
+	100, 101, 0, 114, 117, 120, 128, 132, 0, 0, 134, 142, 143, 0, 0, 145, 155, 156, 160, 160, 0, 222, 0, 172, 0, 0, 0, 0, 174, 177, 179, 181, 187, 0, 0, 144, 0, 0, 0, 0, 0, 0, 0, 234
+end table
+
+event ObjectMain
+	if object.state == 0
+		switch stage.playerListPos
+		case 0
+		case 3
+			object.value1 = Goggles_table0
+			break
+		case 1
+			object.value1 = Goggles_table1
+			break
+		case 2
+			object.value1 = Goggles_table2
+			break
+		end switch
+		object.state++
+	end if
+end event
+
+
+event ObjectDraw
+	currentPlayer = object.value0
+
+		object.direction = object[currentPlayer].direction
+		CheckEqual(object[currentPlayer].animation, ANI_WALKING)
+		temp0 = checkResult
+		CheckEqual(object[currentPlayer].animation, ANI_RUNNING)
+		temp0 |= checkResult
+		CheckEqual(object[currentPlayer].animation, ANI_PEELOUT)
+		temp0 |= checkResult
+		if temp0 == 1
+			object.rotation = object[currentPlayer].rotation
+			if object.rotation >= 256
+				object.rotation += 40
+			else
+				object.rotation += 16
+			end if
+			object.rotation &= 448
+		else
+			object.rotation = 0
+		end if
+		object.frame = object[currentPlayer].frame
+		GetTableValue(temp0, object[currentPlayer].animation, object.value1)
+		if temp0 == 0
+			object.frame = 0
+		else
+			object.frame += temp0
+			if object.value1 == Goggles_table1
+				if object[currentPlayer].animation == ANI_WAITING
+					if object[currentPlayer].frame <= 20
+						object.frame = 50
+					else
+						if object[currentPlayer].frame <= 36
+							object.frame = 51
+						else
+							if object[currentPlayer].frame == 37
+								object.frame = 52
+							else
+								if object[currentPlayer].frame == 48
+									object.frame = 52
+								else
+									object.frame = 53
+								end if
+							end if
+						end if
+					end if
+				else
+					if object[currentPlayer].animation == ANI_FLYINGTIRED
+						object.frame = object[currentPlayer].frame
+						object.frame /= 6
+						object.frame += 90
+					end if
+				end if
+			else
+				if object.value1 == Goggles_table2
+					if object[currentPlayer].animation == ANI_WAITING
+						if object[currentPlayer].frame <= 53
+							object.frame = 100
+						else
+							if object[currentPlayer].frame <= 58
+								object.frame = 101
+							else
+								if object[currentPlayer].frame == 59
+									object.frame = 102
+								else
+									if object[currentPlayer].frame <= 91
+										object.frame = object[currentPlayer].frame
+										object.frame -= 60
+										object.frame &= 3
+										object.frame += 103
+									else
+										object.frame = object[currentPlayer].frame
+										object.frame -= 92
+										object.frame += 107
+									end if
+								end if
+							end if
+						end if
+					else
+						CheckEqual(object[currentPlayer].animation, ANI_FLAILING1)
+						temp0 = checkResult
+						CheckEqual(object[currentPlayer].animation, ANI_FLAILING2)
+						temp0 |= checkResult
+						if temp0 == 1
+							if object[currentPlayer].frame < 12
+								object.frame = object[currentPlayer].frame
+								object.frame >>= 1
+								object.frame += 160
+							else
+								if object[currentPlayer].frame < 27
+									object.frame = 166
+								else
+									if object[currentPlayer].frame < 30
+										object.frame = 167
+									else
+										if object[currentPlayer].frame < 33
+											object.frame = 168
+										else
+											object.frame = object[currentPlayer].frame
+											object.frame -= 33
+											object.frame >>= 1
+											object.frame %= 3
+											object.frame += 169
+										end if
+									end if
+								end if
+							end if
+						end if
+					end if
+				end if
+			end if
+		end if
+		if object.value1 == Goggles_table0
+			if object[0].value43 >= 21
+				object.frame = 0
+			end if
+		end if
+		if object[currentPlayer].type != TypeName[Debug Mode]
+			DrawSpriteFX(object.frame, FX_ROTATE, object[currentPlayer].xpos, object[currentPlayer].ypos)
+		end if
+end event
+
+
+event ObjectStartup
+	LoadSpriteSheet("Global/Goggles.gif")
+	
+	//Blank
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//0
+	
+	//Sonic Stopped
+	SpriteFrame(-4, -12, 12, 9, 118, 71)	//1
+	
+	//Sonic Waiting
+	SpriteFrame(-7, -11, 15, 9, 118, 81)	//2
+	SpriteFrame(-7, -11, 15, 9, 118, 81)	//3
+	SpriteFrame(-7, -11, 15, 9, 118, 81)	//4
+	SpriteFrame(-7, -11, 15, 9, 118, 81)	//5
+	SpriteFrame(-7, -11, 15, 9, 118, 81)	//6
+	SpriteFrame(-7, -11, 15, 9, 118, 81)	//7
+	
+	//Sonic Looking Up
+	SpriteFrame(-4, -12, 12, 9, 118, 71)	//8
+	SpriteFrame(-5, -12, 12, 10, 127, 102)	//9
+	SpriteFrame(-6, -13, 12, 10, 127, 102)	//10
+	
+	//Sonic Crouching
+	SpriteFrame(-4, -12, 12, 9, 118, 71)	//11
+	SpriteFrame(-1, -4, 14, 11, 150, 118)	//12
+	SpriteFrame(-1, 10, 9, 8, 140, 102)	//13
+	
+	//Sonic Walking
+	SpriteFrame(0, -11, 12, 9, 118, 71)	//14
+	SpriteFrame(0, -12, 12, 9, 118, 71)	//15
+	SpriteFrame(0, -11, 12, 9, 118, 71)	//16
+	SpriteFrame(3, -11, 8, 9, 118, 102)	//17
+	SpriteFrame(3, -12, 8, 9, 118, 102)	//18
+	SpriteFrame(3, -11, 8, 9, 118, 102)	//19
+	
+	//Sonic Running
+	SpriteFrame(3, -9, 12, 9, 118, 71)	//20
+	SpriteFrame(3, -9, 12, 9, 118, 71)	//21
+	SpriteFrame(3, -9, 12, 9, 118, 71)	//22
+	SpriteFrame(3, -9, 12, 9, 118, 71)	//23
+	
+	//Sonic Skidding
+	SpriteFrame(-6, -9, 15, 9, 118, 81)	//24
+	SpriteFrame(-6, -9, 15, 9, 118, 81)	//25
+	
+	//ABANDONED Sonic Peelout and Jump
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//26
+	SpriteFrame(3, -7, 8, 9, 118, 102)	//27
+	SpriteFrame(-1, 3, 9, 8, 140, 102)	//28
+	SpriteFrame(-11, -2, 8, 9, 142, 92)	//29
+	SpriteFrame(-8, -11, 9, 8, 118, 123)	//30
+	
+	//Sonic Bouncing
+	SpriteFrame(-2, -19, 12, 10, 127, 102)	//31
+	
+	//Sonic Waterslide
+	SpriteFrame(-10, -4, 15, 9, 118, 81)	//32
+	SpriteFrame(-10, -4, 15, 9, 118, 81)	//33
+	
+	//Sonic Fan Rotate
+	SpriteFrame(9, -5, 12, 9, 118, 71)	//34
+	SpriteFrame(-8, -4, 16, 8, 118, 113)	//35
+	SpriteFrame(-21, -5, 12, 9, 130, 92)	//36
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//37
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//38
+	
+	//Sonic Breathing
+	SpriteFrame(-4, -18, 12, 10, 127, 102)	//39
+	
+	//Sonic Pushing
+	SpriteFrame(-5, -7, 15, 9, 118, 81)		//40
+	SpriteFrame(-5, -8, 15, 9, 118, 81)		//41
+	SpriteFrame(-5, -7, 15, 9, 118, 81)		//42
+	SpriteFrame(-5, -8, 15, 9, 118, 81)		//43
+	
+	//Sonic Flailing
+	SpriteFrame(-10, -13, 15, 9, 118, 81)	//44
+	SpriteFrame(-8, -12, 15, 9, 118, 81)	//45
+	
+	//Sonic Hanging
+	SpriteFrame(-3, -9, 12, 9, 118, 71)		//46
+	SpriteFrame(-3, -9, 12, 9, 118, 71)		//47
+	
+	//Sonic Clinging On
+	SpriteFrame(-13, -10, 14, 13, 135, 113)	//48
+	SpriteFrame(-12, -10, 14, 13, 135, 113)	//49
+	
+	//Tails Stopped
+	SpriteFrame(-4, -10, 12, 9, 118, 71)	//50
+	
+	//Tails Waiting
+	SpriteFrame(-8, -10, 16, 9, 118, 113)	//51
+	SpriteFrame(-8, -11, 16, 9, 118, 113)	//52
+	SpriteFrame(-8, -12, 16, 9, 118, 113)	//53
+	
+	//ABANDONED Tails Up and Down
+	SpriteFrame(-5, -12, 12, 9, 118, 71)	//54
+	SpriteFrame(-2, 1, 12, 9, 118, 71)		//55
+
+	//Tails Walking
+	SpriteFrame(1, -10, 8, 9, 118, 102)		//56
+	SpriteFrame(1, -13, 8, 9, 118, 102)	//57
+	SpriteFrame(1, -14, 8, 9, 118, 102)	//58
+	SpriteFrame(1, -10, 8, 9, 118, 102)	//59
+	SpriteFrame(1, -11, 8, 9, 118, 102)		//60
+	SpriteFrame(1, -13, 8, 9, 118, 102)		//61
+	SpriteFrame(1, -14, 8, 9, 118, 102)	//62
+	SpriteFrame(1, -11, 8, 9, 118, 102)	//63	
+	
+	//Tails Running
+	SpriteFrame(2, -11, 8, 9, 118, 102)	//64
+	SpriteFrame(2, -11, 8, 9, 118, 102)	//65
+	SpriteFrame(2, -11, 8, 9, 118, 102)	//66
+	SpriteFrame(2, -11, 8, 9, 118, 102)	//67	
+	
+	//Tails Skidding
+	SpriteFrame(-2, -11, 12, 9, 118, 71)	//68
+	SpriteFrame(-2, -11, 12, 9, 118, 71)	//69	
+	
+	//Tails Bouncing
+	SpriteFrame(-1, -18, 9, 8, 118, 123)	//70	
+	SpriteFrame(-1, -18, 9, 8, 118, 123)	//71
+	
+	//Tails Waterslide
+	SpriteFrame(-6, -11, 12, 9, 118, 71)	//72
+	SpriteFrame(-6, -11, 12, 9, 118, 71)	//73
+	
+	//Tails Fan Rotate
+	SpriteFrame(8, -5, 12, 9, 118, 71)	//74
+	SpriteFrame(-8, -5, 16, 8, 118, 113)	//75
+	SpriteFrame(-19, -5, 12, 9, 130, 92)	//76
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//77
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//78
+	
+	//Tails Breathe
+	SpriteFrame(-2, -16, 12, 10, 127, 102)	//79
+	
+	//Tails Pushing
+	SpriteFrame(-2, -8, 15, 9, 118, 81)	//80
+	SpriteFrame(-2, -9, 15, 9, 118, 81)	//81
+	SpriteFrame(-2, -8, 15, 9, 118, 81)	//82
+	SpriteFrame(-2, -9, 15, 9, 118, 81)	//83		
+	
+	//Tails Flailing
+	SpriteFrame(-11, -10, 16, 9, 118, 113)	//84
+	SpriteFrame(-9, -7, 16, 9, 118, 113)	//85	
+	
+	//Tails Clinging On
+	SpriteFrame(-18, -9, 14, 13, 135, 113)	//86
+	SpriteFrame(-19, -9, 14, 13, 135, 113)	//87
+	
+	//Tails Flying
+	SpriteFrame(-1, -5, 12, 9, 118, 71)	//88
+	SpriteFrame(-1, -5, 12, 9, 118, 71)	//89
+	
+	//Tails Flying Tired
+	SpriteFrame(-1, -5, 12, 9, 118, 71)	//90
+	SpriteFrame(-1, -4, 12, 9, 118, 71)	//91
+	
+	//Tails Swimming
+	SpriteFrame(-1, -5, 12, 9, 118, 71)	//92
+	SpriteFrame(-1, -5, 12, 9, 118, 71)	//93
+	SpriteFrame(-1, -5, 12, 9, 118, 71)	//94
+	SpriteFrame(-1, -5, 12, 9, 118, 71)	//95
+	SpriteFrame(-1, -5, 12, 9, 118, 71)	//96
+	
+	//ABANDONDED Tails Swimming Tired
+	SpriteFrame(1, -5, 12, 9, 118, 71)	//97
+	SpriteFrame(1, -5, 12, 9, 118, 71)	//98
+	SpriteFrame(1, -5, 12, 9, 118, 71)	//99
+	
+	//Knuckles Stopped
+	SpriteFrame(-6, -17, 15, 9, 118, 81)	//100
+	
+	//Knuckles Waiting
+	SpriteFrame(-7, -16, 15, 9, 118, 81)	//101
+	SpriteFrame(-4, -17, 15, 9, 118, 81)	//102
+	SpriteFrame(-5, -16, 15, 9, 118, 81)	//103
+	SpriteFrame(-4, -16, 15, 9, 118, 81)	//104
+	SpriteFrame(-3, -15, 15, 9, 118, 81)	//105
+	SpriteFrame(-4, -15, 15, 9, 118, 81)	//106
+	SpriteFrame(-5, -15, 15, 9, 118, 81)	//107
+	SpriteFrame(-4, -15, 15, 9, 118, 81)	//108
+	SpriteFrame(-5, -15, 15, 9, 118, 81)	//109
+	SpriteFrame(-4, -15, 15, 9, 118, 81)	//110
+	SpriteFrame(7, -15, 8, 9, 118, 102)	//111
+	SpriteFrame(-5, -16, 15, 9, 118, 81)	//112
+	SpriteFrame(-4, -17, 15, 9, 118, 81)	//113
+	
+	//Knuckles Looking Up
+	SpriteFrame(-6, -17, 15, 9, 118, 81)	//114
+	SpriteFrame(-6, -19, 12, 10, 127, 102)	//115
+	SpriteFrame(-7, -20, 12, 10, 127, 102)	//116
+	
+	//Knuckles Crouched
+	SpriteFrame(-6, -17, 15, 9, 118, 81)	//117
+	SpriteFrame(-3, -9, 12, 9, 118, 71)	//118
+	SpriteFrame(-2, -1, 12, 9, 118, 71)	//119
+	
+	//Knuckles Walking
+	SpriteFrame(-1, -11, 12, 9, 118, 71)	//120
+	SpriteFrame(3, -12, 8, 9, 118, 102)	//121
+	SpriteFrame(3, -14, 8, 9, 118, 102)	//122
+	SpriteFrame(0, -12, 12, 9, 118, 71)	//123
+	SpriteFrame(-3, -12, 12, 9, 118, 71)	//124
+	SpriteFrame(-4, -13, 15, 9, 118, 81)	//125
+	SpriteFrame(-4, -14, 15, 9, 118, 81)	//126
+	SpriteFrame(-2, -13, 12, 9, 118, 71)	//127
+	
+	//Knuckles Running
+	SpriteFrame(-3, -12, 12, 9, 118, 71)	//128
+	SpriteFrame(-3, -12, 12, 9, 118, 71)	//129
+	SpriteFrame(-3, -12, 12, 9, 118, 71)	//130
+	SpriteFrame(-3, -12, 12, 9, 118, 71)	//131
+	
+	//Knuckles Skidding
+	SpriteFrame(-5, -13, 15, 9, 118, 81)	//132
+	SpriteFrame(-10, -12, 15, 9, 118, 81)	//133
+	
+	//Knuckles Jumping
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//134
+	SpriteFrame(2, -11, 8, 9, 118, 102)	//135
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//136
+	SpriteFrame(2, 1, 9, 8, 140, 102)	//137
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//138
+	SpriteFrame(-10, 2, 8, 9, 142, 92)	//139
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//140
+	SpriteFrame(-11, -10, 9, 8, 118, 123)	//141
+	
+	//Knuckles Bouncing
+	SpriteFrame(-6, -17, 9, 8, 118, 123)	//142
+	
+	//Knuckles Waterslide
+	SpriteFrame(-8, -16, 15, 9, 118, 81)	//143
+	
+	//ABANDONED Knuckles Waterslide
+	SpriteFrame(-6, -10, 15, 9, 118, 81)	//144	
+	
+	//Knuckles Fan Rotate
+	SpriteFrame(2, -8, 15, 9, 118, 81)	//145
+	SpriteFrame(-7, -5, 16, 9, 118, 113)	//146
+	SpriteFrame(-17, -8, 15, 9, 69, 106)	//147
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//148	
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//149
+	
+	//Unknown
+	SpriteFrame(-14, -9, 8, 9, 60, 106)	//150
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//151
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//152
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//153
+	SpriteFrame(6, -9, 8, 9, 118, 102)	//154
+	
+	//Knuckles Breathing
+	SpriteFrame(-3, -17, 15, 9, 118, 81)	//155
+	
+	//Knuckles Pushing
+	SpriteFrame(1, -13, 12, 9, 118, 71)	//156
+	SpriteFrame(-4, -14, 15, 9, 118, 81)	//157
+	SpriteFrame(1, -13, 12, 9, 118, 71)	//158
+	SpriteFrame(4, -14, 8, 9, 118, 102)	//159
+	
+	//Knuckles Flailing
+	SpriteFrame(1, -10, 12, 9, 118, 71)	//160
+	SpriteFrame(2, -15, 15, 9, 118, 81)	//161
+	SpriteFrame(5, -12, 16, 9, 118, 113)	//162
+	SpriteFrame(3, -26, 14, 13, 135, 113)	//163
+	SpriteFrame(7, -16, 6, 7, 128, 123)	//164
+	SpriteFrame(3, -16, 11, 10, 118, 91)	//165
+	SpriteFrame(-1, -22, 14, 13, 135, 113)	//166
+	SpriteFrame(4, -20, 14, 13, 135, 113)	//167
+	SpriteFrame(6, -18, 14, 13, 135, 113)	//168
+	SpriteFrame(5, -20, 14, 13, 135, 113)	//169
+	SpriteFrame(3, -21, 14, 13, 135, 113)	//170
+	SpriteFrame(3, -20, 14, 13, 135, 113)	//171
+
+	//Knuckles Clinging On
+	SpriteFrame(-16, -4, 11, 10, 118, 91)	//172
+	SpriteFrame(-15, -3, 11, 10, 118, 91)	//173	
+	
+	//Knuckles Gliding
+	SpriteFrame(-7, -5, 16, 9, 118, 113)	//174
+	SpriteFrame(-2, -7, 15, 9, 118, 81)	//175
+	SpriteFrame(2, -8, 12, 9, 118, 71)	//176
+	
+	//Knuckles Gliding Drop
+	SpriteFrame(2, -13, 12, 9, 118, 71)	//177
+	SpriteFrame(1, -16, 12, 9, 118, 71)	//178
+	
+	//Knuckles Gliding Stop
+	SpriteFrame(3, -3, 12, 9, 118, 71)	//179
+	SpriteFrame(-4, -6, 15, 9, 118, 81)	//180
+	
+	//Knuckles Climbing
+	SpriteFrame(-12, -15, 10, 10, 127, 102)	//181
+	SpriteFrame(-13, -15, 10, 10, 127, 102)	//182
+	SpriteFrame(-12, -16, 10, 10, 127, 102)	//183
+	SpriteFrame(-12, -15, 10, 10, 127, 102)	//184
+	SpriteFrame(-13, -15, 10, 10, 127, 102)	//185
+	SpriteFrame(-12, -16, 10, 10, 127, 102)	//186
+	
+	//Knuckles Ledge Pull Up
+	SpriteFrame(-4, -20, 8, 9, 118, 102)	//187
+	SpriteFrame(-3, -21, 8, 9, 118, 102)	//188
+	SpriteFrame(-8, -23, 15, 9, 118, 81)	//189
+	
+	//Custom
+	//CD peelout
+	SpriteFrame(7, -4, 12, 9, 118, 71)	//190
+	SpriteFrame(7, -4, 12, 9, 118, 71)	//191
+	SpriteFrame(7, -4, 12, 9, 118, 71)	//192
+	SpriteFrame(7, -4, 12, 9, 118, 71)	//193
+	
+	//S2 peelout
+	SpriteFrame(8, -7, 12, 9, 118, 71)	//194
+	SpriteFrame(8, -7, 12, 9, 118, 71)	//195
+	SpriteFrame(8, -7, 12, 9, 118, 71)	//196
+	SpriteFrame(8, -7, 12, 9, 118, 71)	//197
+	
+	//Mania Peelout
+	SpriteFrame(7, -6, 12, 9, 118, 71)	//198
+	SpriteFrame(7, -6, 12, 9, 118, 71)	//199
+	SpriteFrame(7, -6, 12, 9, 118, 71)	//200
+	SpriteFrame(7, -6, 12, 9, 118, 71)	//201
+	
+	//Tails Crouch
+	SpriteFrame(-4, -10, 12, 9, 118, 71)	//202
+	SpriteFrame(-2, -6, 12, 9, 118, 71)	//203
+	SpriteFrame(0, 1, 12, 9, 118, 71)	//204
+	
+	//Tails Up
+	SpriteFrame(-4, -10, 12, 9, 118, 71)	//205
+	SpriteFrame(-5, -11, 12, 9, 118, 71)	//206
+	SpriteFrame(-5, -13, 12, 9, 118, 71)	//207
+	
+	//Sonic Jump
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//208
+	SpriteFrame(3, -7, 8, 9, 118, 102)	//209
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//210
+	SpriteFrame(-1, 3, 9, 8, 140, 102)	//211
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//212
+	SpriteFrame(-11, -2, 8, 9, 142, 92)	//213
+	SpriteFrame(0, 0, 1, 1, 1, 1)	//214
+	SpriteFrame(-8, -11, 9, 8, 118, 123)	//215
+	
+	//Tails Peel Out
+	SpriteFrame(3, -7, 8, 9, 118, 102)	//216
+	SpriteFrame(3, -7, 8, 9, 118, 102)	//217
+
+	//Tails Swim Tired
+	SpriteFrame(-1, -6, 12, 9, 118, 71)	//218
+	SpriteFrame(-1, -6, 12, 9, 118, 71)	//219
+	SpriteFrame(-1, -6, 12, 9, 118, 71)	//220
+	SpriteFrame(-1, -6, 12, 9, 118, 71)	//221
+	
+	//Knuckles Hanging
+	SpriteFrame(-7, -13, 15, 9, 118, 81)	//222
+	SpriteFrame(-7, -14, 15, 9, 118, 81)	//223
+	
+	//Sonic CD Spring Twirl
+	SpriteFrame(-5, -21, 6, 7, 1, 1)	//224
+	SpriteFrame(-6, -21, 13, 3, 19, 1)	//225
+	SpriteFrame(0, -21, 6, 7, 1, 9)		//226
+	SpriteFrame(-4, -21, 10, 4, 8, 6)	//227
+	SpriteFrame(-5, -21, 10, 4, 8, 1)	//228
+	
+	//Tails CD Spring Twirl
+	SpriteFrame(-6, -19, 6, 7, 1, 1)	//229
+	SpriteFrame(-6, -16, 13, 3, 19, 1)	//230
+	SpriteFrame(1, -19, 6, 7, 1, 9)		//231
+	SpriteFrame(-3, -16, 10, 4, 8, 6)	//232
+	SpriteFrame(-6, -16, 10, 4, 8, 1)	//233
+	
+	//Knuckles CD Spring Twirl
+	SpriteFrame(-5, -18, 6, 7, 1, 1)	//234
+	SpriteFrame(0, 0, 1, 1, 1, 1)		//235
+	SpriteFrame(2, -18, 6, 7, 1, 9)		//236
+	SpriteFrame(1, -18, 6, 7, 1, 1)		//237
+	SpriteFrame(-2, -18, 6, 7, 1, 9)	//238
+	
+	foreach (TypeName[Goggles], arrayPos0, ALL_ENTITIES)
+		arrayPos1 = playerCount
+		currentPlayer = 0
+		ResetObjectEntity(arrayPos1, TypeName[Goggles], 0, 0, 0)
+		object[arrayPos1].priority = PRIORITY_ACTIVE
+		object[arrayPos1].value0 = 0
+		object[arrayPos1].drawOrder = -1
+		ResetObjectEntity(arrayPos0, TypeName[Blank Object], 0, 0, 0)
+	next
+	goggleType = TypeName[Goggles]
+end event
+
+event RSDKDraw
+	DrawSprite(0)
+end event
+
+event RSDKLoad
+	LoadSpriteSheet("Global/Display.gif")
+	SpriteFrame(-16, -16, 32, 32, 1, 143)
+end event

@@ -436,4 +436,6 @@ public:
 };
 
 extern RetroEngine Engine;
+// Path to the launched executable (set in main)
+extern char launchPath[0x400];
 #endif // !RETROENGINE_H
