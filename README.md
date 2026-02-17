@@ -25,7 +25,6 @@ TODO: add build instructions
 
 
 
-Also added all the dependencies as submodules recently
 =======
 ## Building for Wii U
 
