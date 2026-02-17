@@ -18,3 +18,10 @@ This repository is a fork of https://gitlab.com/QuarkTheAwesome/sonic2013-wiiu w
 This fork follows the original project's license. See the `LICENSE.md` file for details.
 
 TODO: add build instructions
+
+
+
+
+
+
+Also added all the dependencies as submodules recently
