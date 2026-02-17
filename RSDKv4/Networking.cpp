@@ -1,6 +1,35 @@
 #include "RetroEngine.hpp"
 #if RETRO_USE_NETWORKING
 
+// If building a package for Aroma (or other restricted launchers) define
+// AROMA_SAFE to disable networking and thread creation which can hang
+// or be unsupported at runtime on some consoles.
+#if defined(AROMA_SAFE)
+
+#include "Networking.hpp"
+
+char networkHost[64] = "";
+char networkGame[16] = "SONIC2";
+int networkPort      = 50;
+int dcError          = 0;
+float lastPing       = 0;
+
+bool waitingForPing = false;
+
+uint64_t lastTime = 0;
+
+void initNetwork() {}
+void networkLoop() {}
+void runNetwork() {}
+void sendData() {}
+void disconnectNetwork() {}
+void sendServerPacket(ServerPacket &send) {}
+int getRoomCode() { return 0; }
+void setRoomCode(int code) {}
+void SetNetworkGameName(int *a1, const char *name) { StrCopy(networkGame, name); }
+
+#else
+
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -242,4 +271,5 @@ int getRoomCode() { return session->roomcode; }
 void setRoomCode(int code) { session->roomcode = code; }
 
 void SetNetworkGameName(int *a1, const char *name) { StrCopy(networkGame, name); }
+#endif // AROMA_SAFE
 #endif
