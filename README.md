@@ -162,3 +162,20 @@ The scripts will locate an icon in the `icon/` directory, convert it to PNG if I
 - The packer scripts will fail if the RPX or a valid icon cannot be found; place icon files in the `icon/` folder (see repo `icon/` subfolders).
 
 See `scripts/wuhb_packer.ps1` and `scripts/wuhb_packer.sh` for full behavior and options.
+
+
+
+
+
+
+current known issues:
+
+incredibly slow loading (with the mods versions) - Will be fixed soon
+
+
+Couldn't load Game.xml (logs) - this only seems to happen on real hardware, i haven't been able to reproduce it but expect a fix in the near future
+
+
+Pause softlocking the whole game on unmodded - currently figuring out how to fix it, as of now the next few builds will probably just have the pause button disabled entirely on unmodded
+
+i made this list real quickly so excuse the formatting
