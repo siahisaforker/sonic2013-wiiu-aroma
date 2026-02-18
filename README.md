@@ -179,3 +179,5 @@ Couldn't load Game.xml (logs) - this only seems to happen on real hardware, i ha
 Pause softlocking the whole game on unmodded - currently figuring out how to fix it, as of now the next few builds will probably just have the pause button disabled entirely
 
 i made this list real quickly so excuse the formatting
+
+TODO: Add pro controller and other wii controllers support
