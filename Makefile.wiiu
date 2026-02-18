@@ -7,11 +7,12 @@ ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitPro")
 endif
 
+
 PKGCONFIG ?= $(DEVKITPRO)/portlibs/wiiu/bin/powerpc-eabi-pkg-config
 
 include $(DEVKITPRO)/wut/share/wut_rules
 
-CXXFLAGS_ALL = $(shell $(PKGCONFIG) --cflags --static sdl2 vorbisfile vorbis) $(CXXFLAGS) \
+CXXFLAGS_ALL = $(shell $(PKGCONFIG) --cflags --static vorbisfile vorbis 2>/dev/null) $(CXXFLAGS) \
                $(MACHDEP) -O2 -g -ffunction-sections -fdata-sections \
                -D__WIIU__ -D__WUT__ \
                -DPACKAGED_GAME=$(PACKAGED_GAME) \
@@ -22,13 +23,25 @@ CXXFLAGS_ALL = $(shell $(PKGCONFIG) --cflags --static sdl2 vorbisfile vorbis) $(
                -IRSDKv4/NativeObjects/ \
                -Idependencies/all/asio/include/ \
                -Idependencies/all/stb-image/ \
-               -Idependencies/all/tinyxml2/
+               -Idependencies/all/tinyxml2/ \
                -DAROMA_SAFE \
 
 LDFLAGS += $(ARCH) $(RPXSPECS)
 # Ensure the WUT library directory is searched when linking so -lwut is found.
 LDFLAGS += -L$(WUT_ROOT)/lib
-LIBS = $(shell $(PKGCONFIG) --libs --static sdl2 vorbisfile vorbis)
+LIBS = $(shell $(PKGCONFIG) --libs --static vorbisfile vorbis)
+
+# Prefer SDL from the repository submodule if it has been built locally
+ifneq ($(wildcard dependencies/all/SDL/.libs/libSDL2.a),)
+LIBS := dependencies/all/SDL/.libs/libSDL2.a $(LIBS)
+CXXFLAGS_ALL += -Idependencies/all/SDL/include
+else
+# If no local SDL static library exists, fall back to pkg-config for SDL2
+CXXFLAGS_ALL += -Idependencies/all/SDL/include
+# Add SDL cflags from pkg-config when not using the local SDL build
+CXXFLAGS_ALL := $(shell $(PKGCONFIG) --cflags --static sdl2 2>/dev/null) $(CXXFLAGS_ALL)
+LIBS := $(shell $(PKGCONFIG) --libs --static sdl2 2>/dev/null) $(LIBS)
+endif
 
 SOURCES = \
           dependencies/all/tinyxml2/tinyxml2.cpp \
