@@ -176,6 +176,6 @@ incredibly slow loading (with the mods versions) - Will be fixed soon
 Couldn't load Game.xml (logs) - this only seems to happen on real hardware, i haven't been able to reproduce it but expect a fix in the near future
 
 
-Pause softlocking the whole game on unmodded - currently figuring out how to fix it, as of now the next few builds will probably just have the pause button disabled entirely on unmodded
+Pause softlocking the whole game on unmodded - currently figuring out how to fix it, as of now the next few builds will probably just have the pause button disabled entirely
 
 i made this list real quickly so excuse the formatting
