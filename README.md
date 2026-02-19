@@ -14,54 +14,6 @@ This repository is a fork of https://gitlab.com/QuarkTheAwesome/sonic2013-wiiu w
 
 2. See the `RSDKv4/` directory for engine sources and platform-specific projects.
 
-## License
-This fork follows the original project's license. See the `LICENSE.md` file for details.
-
-<<<<<<< HEAD
-TODO: add build instructions
-
-
-
-
-
-
-=======
-## Building for Wii U
-
-**Prerequisites**
-- `docker` (optional, recommended for reproducible builds)
-- `devkitPro` with WUT (for native builds)
-- Set the `DEVKITPRO` environment variable to your devkitPro install
-
-**Using Docker (recommended)**
-- Build the image:
-
-```bash
-docker build -f Dockerfile.wiiu -t sonic3air-wiiu:latest .
-```
-
-- Build inside a container (mounts current repo):
-
-```bash
-docker run --rm -v "$(pwd)":/workspace -w /workspace sonic3air-wiiu:latest make -f Makefile.wiiu
-```
-
-# sonic2013-wiiu
-
-This repository is a fork of https://gitlab.com/QuarkTheAwesome/sonic2013-wiiu with the goal of improving Aroma compatibility and polishing it.
-
-## Highlights
-- Focused fixes and build improvements for Aroma and Wii U runtime behavior
-- Packaging helpers and scripts for creating WUHB / Wii U-ready artifacts
-- Quality-of-life changes and platform-specific fixes
-
-## Getting started
-1. Clone the repo:
-
-	git clone https://github.com/siahisaforker/sonic3air-wiiuport.git
-
-2. See the `RSDKv4/` directory for engine sources and platform-specific projects.
-
 > Note: the repository recently added many dependencies as submodules; run `git submodule update --init --recursive` after cloning.
 
 ## License
