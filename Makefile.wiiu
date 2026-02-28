@@ -18,7 +18,8 @@ CXXFLAGS_ALL = $(shell $(PKGCONFIG) --cflags --static sdl2 vorbisfile vorbis) $(
                -IRSDKv4/NativeObjects/ \
                -Idependencies/all/asio/include/ \
                -Idependencies/all/stb-image/ \
-               -Idependencies/all/tinyxml2/
+               -Idependencies/all/tinyxml2/ \
+               -Idependencies/all/yawut-sdl/include/
 
 LDFLAGS += $(ARCH) $(RPXSPECS)
 # Ensure the WUT library directory is searched when linking so -lwut is found.
@@ -99,7 +100,14 @@ endif
 OFILES = $(SOURCES:%=objects/%.o)
 LD = $(CXX)
 
-all: bin/RSDKv4.rpx
+all: prepare bin/RSDKv4.rpx
+
+# Prepare repository: initialize/update git submodules when present
+prepare:
+	@if [ -f .gitmodules ]; then \
+		printf "Initializing/updating git submodules...\n"; \
+		git submodule update --init --recursive || true; \
+	fi
 bin/RSDKv4.elf: $(OFILES) bin
 
 bin:
