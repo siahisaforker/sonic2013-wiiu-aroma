@@ -4,14 +4,22 @@ ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitPro")
 endif
 
-PKGCONFIG ?= $(DEVKITPRO)/portlibs/wiiu/bin/powerpc-eabi-pkg-config
+PKGCONFIG_WIIU ?= $(DEVKITPRO)/portlibs/wiiu/bin/powerpc-eabi-pkg-config
+PKGCONFIG_PPC ?= $(DEVKITPRO)/portlibs/ppc/bin/powerpc-eabi-pkg-config
+
+SDL2_CFLAGS = $(shell $(PKGCONFIG_WIIU) --cflags --static sdl2 2>/dev/null)
+VORBIS_CFLAGS = $(shell $(PKGCONFIG_PPC) --cflags --static vorbisfile vorbis 2>/dev/null)
+SDL2_LIBS = $(shell $(PKGCONFIG_WIIU) --libs --static sdl2 2>/dev/null)
+VORBIS_LIBS = $(shell $(PKGCONFIG_PPC) --libs --static vorbisfile vorbis 2>/dev/null)
 
 include $(DEVKITPRO)/wut/share/wut_rules
 
-CXXFLAGS_ALL = $(shell $(PKGCONFIG) --cflags --static sdl2 vorbisfile vorbis) $(CXXFLAGS) \
+CXXFLAGS_ALL = $(SDL2_CFLAGS) $(VORBIS_CFLAGS) $(CXXFLAGS) \
                $(MACHDEP) -O2 -g -ffunction-sections -fdata-sections \
                -D__WIIU__ -D__WUT__ \
                -I$(WUT_ROOT)/include \
+               -I$(DEVKITPRO)/portlibs/wiiu/include \
+               -I$(DEVKITPRO)/portlibs/ppc/include \
                -DBASE_PATH='"$(BASE_PATH)"' \
                -DSTBI_NO_THREAD_LOCALS \
                -IRSDKv4/ \
@@ -24,7 +32,7 @@ CXXFLAGS_ALL = $(shell $(PKGCONFIG) --cflags --static sdl2 vorbisfile vorbis) $(
 LDFLAGS += $(ARCH) $(RPXSPECS)
 # Ensure the WUT library directory is searched when linking so -lwut is found.
 LDFLAGS += -L$(WUT_ROOT)/lib
-LIBS = $(shell $(PKGCONFIG) --libs --static sdl2 vorbisfile vorbis)
+LIBS = $(SDL2_LIBS) $(VORBIS_LIBS)
 
 SOURCES = \
           dependencies/all/tinyxml2/tinyxml2.cpp \
