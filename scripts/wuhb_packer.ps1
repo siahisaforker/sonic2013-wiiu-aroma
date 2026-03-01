@@ -31,6 +31,8 @@ if ($Choice -ne '') {
 if ($choice -ne '1' -and $choice -ne '2') { Write-Error "Invalid choice: $choice (use 1 or 2)"; exit 1 }
 
 $iconName = "Sonic $choice"
+$displayName = "Sonic $choice"
+$shortName = "Sonic$choice"
 $exts = @('png','tga','jpg','jpeg')
 $found = $null
 $foundBanner = $null
@@ -87,7 +89,7 @@ if ($foundBanner) {
 Copy-Item -Path $RpxPath -Destination (Join-Path $pkgDir 'wiiu\apps\RSDKv4\RSDKv4.rpx') -Force
 
 Set-Content -Path (Join-Path $pkgDir 'wiiu\apps\RSDKv4\metadata.txt') -Value @(
-    "title=RSDKv4 Homebrew",
+    "title=$displayName",
     "game=RSDKv4",
     "source=Sonic $choice",
     ("pack_time={0}" -f (Get-Date -Format o))
@@ -119,7 +121,7 @@ $contentDir = Join-Path $pkgDir 'wiiu'
 
 Write-Host "Creating .wuhb using $wuhbCmd..."
 try {
-    $args = @($rpxIn, $outFile, '--content', $contentDir, '--icon', $targetIcon, '--name', 'RSDKv4 Homebrew', '--short-name', 'RSDKv4', '--author', 'RSDKv4 Packager')
+    $args = @($rpxIn, $outFile, '--content', $contentDir, '--icon', $targetIcon, '--name', $displayName, '--short-name', $shortName, '--author', 'RSDKv4 Packager')
     if ($targetBanner) { $args += @('--tv-image', $targetBanner, '--drc-image', $targetBanner) }
     & $wuhbCmd @args | Out-Null
     Write-Host "Wuhb package created: $outFile"

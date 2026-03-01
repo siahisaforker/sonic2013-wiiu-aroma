@@ -41,6 +41,8 @@ if [ "$CHOICE" != "1" ] && [ "$CHOICE" != "2" ]; then
 fi
 
 ICON_NAME="Sonic $CHOICE"
+DISPLAY_NAME="Sonic $CHOICE"
+SHORT_NAME="Sonic$CHOICE"
 PREFERRED_EXTS=(png tga jpg jpeg)
 FOUND_ICON=""
 FOUND_BANNER=""
@@ -102,7 +104,7 @@ fi
 cp "$RPX_PATH" "$PKG_DIR/wiiu/apps/RSDKv4/RSDKv4.rpx"
 
 cat > "$PKG_DIR/wiiu/apps/RSDKv4/metadata.txt" <<EOF
-title=RSDKv4 Homebrew
+title=$DISPLAY_NAME
 game=RSDKv4
 source=Sonic $CHOICE
 pack_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -137,7 +139,7 @@ RPX_IN="$PKG_DIR/wiiu/apps/RSDKv4/RSDKv4.rpx"
 CONTENT_DIR="$PKG_DIR/wiiu"
 
 echo "Creating .wuhb using $WUHB_CMD..."
-CMD=("$WUHB_CMD" "$RPX_IN" "$OUT_FILE" --content "$CONTENT_DIR" --icon "$TARGET_ICON" --name "RSDKv4 Homebrew" --short-name "RSDKv4" --author "RSDKv4 Packager")
+CMD=("$WUHB_CMD" "$RPX_IN" "$OUT_FILE" --content "$CONTENT_DIR" --icon "$TARGET_ICON" --name "$DISPLAY_NAME" --short-name "$SHORT_NAME" --author "RSDKv4 Packager")
 if [ -n "$TARGET_BANNER" ]; then
   CMD+=(--tv-image "$TARGET_BANNER" --drc-image "$TARGET_BANNER")
 fi
